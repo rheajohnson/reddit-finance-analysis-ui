@@ -1,0 +1,173 @@
+bucket: &bucket "www.ryanjohnsondev.com"
+node_image: &node_image "circleci/node:12.16.0-stretch"
+resource_class: &resource_class "small"
+working_directory: &working_directory "/tmp/working-directory"
+
+version: 2.1
+
+orbs:
+  aws-cli: circleci/aws-cli@1.0.0
+  aws-s3: circleci/aws-s3@1.0.15
+
+jobs:
+  npm-ci:
+    docker:
+      - image: *node_image
+    resource_class: *resource_class
+    working_directory: *working_directory
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - npm-ci-v1-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+      - run:
+          name: Install NPM dependencies
+          command: npm ci
+      - save_cache:
+          key: npm-ci-v1-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+
+  eslint:
+    docker:
+      - image: *node_image
+    resource_class: *resource_class
+    working_directory: *working_directory
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - npm-ci-v1-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+      - run:
+          name: Run linting (with JUnit as reporter)
+          command: |
+            set +e
+            node_modules/.bin/eslint . --ext .ejs,.js,.jsx,.mjs --format junit --output-file reports/junit/eslint-results.xml
+          when: always
+      - store_test_results:
+          path: ./reports
+      - store_artifacts:
+          path: ./reports
+
+  get-secrets:
+    description: A parameterized job that gets env vars from AWS Secrets Manager
+    executor: aws-cli/default
+    parameters:
+      environment-name:
+        description: "Name of the environment that becomes part of the secret-id"
+        default: ""
+        type: string
+    resource_class: *resource_class
+    working_directory: *working_directory
+    steps:
+      - aws-cli/setup
+      - run:
+          name: Get secret value from AWS Secrets Manager
+          command: |
+            echo 'export SECRETS=$(aws secretsmanager get-secret-value \
+            --secret-id="arn:aws:secretsmanager:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:secret:${CIRCLE_PROJECT_REPONAME}-env-vars-<< parameters.environment-name >>" \
+            --query="SecretString" \
+            --output="text")' >> $BASH_ENV
+      - run:
+          name: Build .env file from $SECRETS variable
+          command: echo "$SECRETS" | jq -r '. | to_entries | .[] | .key + "=\"" + .value + "\""' > .env
+      - persist_to_workspace:
+          root: ./
+          paths:
+            - .env
+
+  npm-run-build:
+    docker:
+      - image: *node_image
+    environment:
+      CI: false
+    resource_class: medium
+    working_directory: *working_directory
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - npm-ci-v1-{{ checksum "package.json" }}-{{ checksum "package-lock.json" }}
+      - attach_workspace:
+          at: ./
+      - run:
+          name: Build the app for production to the build folder
+          command: |
+            echo "The CI env var is set to false to avoid treating warnings as errors"
+            echo "Disables the logic for Treating warnings as errors because process.env.CI = true."
+            cat .env
+            npm run build
+      - persist_to_workspace:
+          root: ./build
+          paths:
+            - ./
+
+  sync-files-to-s3:
+    description: A parameterized job that copies the project files up to S3
+    executor: aws-cli/default
+    parameters:
+      s3-bucket-name:
+        description: "S3 Bucket Name"
+        default: ""
+        type: string
+    resource_class: *resource_class
+    working_directory: *working_directory
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ./build
+      - aws-s3/sync:
+          aws-region: AWS_DEFAULT_REGION
+          from: build
+          overwrite: true
+          to: "s3://<< parameters.s3-bucket-name >>"
+
+workflows:
+  version: 1
+  main-workflow:
+    jobs:
+      - npm-ci:
+          filters:
+            branches:
+              only:
+                - master
+
+      # - eslint:
+      #     filters:
+      #       branches:
+      #         only:
+      #           - master
+      #     requires:
+      #       - npm-ci
+
+      - get-secrets:
+          context: "context-aws-311638723712"
+          filters:
+            branches:
+              only:
+                - master
+          name: GetSecrets
+          environment-name: "prod"
+          requires:
+            - npm-ci
+
+      - npm-run-build:
+          filters:
+            branches:
+              only:
+                - master
+          name: NpmRunBuild
+          requires:
+            - npm-ci
+            - GetSecrets
+
+      - sync-files-to-s3:
+          context: "context-aws-311638723712"
+          filters:
+            branches:
+              only:
+                - master
+          name: SyncFilesToS3
+          requires:
+            - NpmRunBuild
+          s3-bucket-name: *bucket

@@ -1,0 +1,5 @@
+# These two directories in the project root are ignored by default. https://eslint.org/docs/user-guide/configuring#eslintignore
+# /node_modules/*
+# /bower_components/*
+
+/build/*
