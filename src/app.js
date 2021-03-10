@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import moment from "moment";
+import Moment from "react-moment";
 import { useQuery, gql } from "@apollo/react-hooks";
 import {
   BarChart,
@@ -81,18 +81,12 @@ const App = () => {
       document: DATA_SUBSCRIPTION,
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
-        setAnalysisData(subscriptionData.data);
+        setAnalysisData(subscriptionData.data.onUpdateAnalysisData);
       },
-      onError: (error) => {
-        console.log(error);
-        if (
-          error.errors &&
-          error.errors[0] &&
-          error.errors[0].message === "Connection closed"
-        ) {
-          console.log("retrying");
+      onError: ({ errors }) => {
+        if (errors && errors[0].message === "Connection closed") {
           setTimeout(() => {
-            this.dataSubscription(subscribeToMore, retrying * 2);
+            dataSubscription(subscribeToMore, retrying * 2);
           }, retrying);
         }
       },
@@ -137,35 +131,53 @@ const App = () => {
       <div className="info-container">
         <h3 className="chart-title">Summary</h3>
 
-        <p>{`Analyzed ${analysisData.totalComments} comments in ${analysisData.totalPosts} posts in ${analysisData.totalSubreddits} subreddits.`}</p>
-        <p>{`Updated ${moment.utc(analysisData.timestamp).fromNow()}`}</p>
+        <p>{`Analyzed ${analysisData.totalComments} comment threads in ${analysisData.totalPosts} posts in ${analysisData.totalSubreddits} subreddits.`}</p>
+        <p>
+          Last updated:{" "}
+          <Moment interval={1000} fromNow utc>
+            {analysisData.timestamp}
+          </Moment>
+        </p>
       </div>
       <main className="main-container">
         <div className="chart-container">
-          <h3 className="chart-title">Top mentioned tickers</h3>
+          <h3 className="chart-title">Most Mentioned Tickers</h3>
           <div className="chart">
             <ResponsiveContainer className="responsive-container">
-              <BarChart data={mentionData || []} className="bar-chart">
+              <BarChart
+                data={mentionData || []}
+                className="bar-chart"
+                margin={{
+                  right: 30,
+                }}
+              >
                 <XAxis dataKey="name" stroke="#fff" opacity={0.85} />
                 <YAxis dataKey="mentions" stroke="#fff" opacity={0.85} />
                 <Tooltip content={(e) => customTooltip(e)} />
-                <Bar dataKey="mentions" fill="#f7725d" />
+                <Bar dataKey="mentions" fill="#FFC760" />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
         <div className="chart-container">
-          <h3 className="chart-title">Top tickers seniment</h3>
+          <h3 className="chart-title">Ticker Sentiment</h3>
           <div className="chart">
             <ResponsiveContainer className="responsive-container">
-              <BarChart data={sentimentData || []}>
+              <BarChart
+                data={sentimentData || []}
+                margin={{
+                  right: 30,
+                }}
+              >
                 <XAxis dataKey="name" stroke="#fff" opacity={0.85} />
                 <YAxis stroke="#fff" opacity={0.85} />
                 <Tooltip content={(e) => customTooltip(e)} />
-                <Bar dataKey="positive" fill="#f7723d" />
-                <Bar dataKey="neutral" fill="#EAD270" />
-                <Bar dataKey="negative" fill="#6662D8" />
-                <Legend wrapperStyle={{ position: "relative" }} />
+                <Bar dataKey="positive" fill="#FFC760" />
+                <Bar dataKey="neutral" fill="#4B7AF2" />
+                <Bar dataKey="negative" fill="#FB497C" />
+                <Legend
+                  wrapperStyle={{ position: "relative", marginLeft: 30 }}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
