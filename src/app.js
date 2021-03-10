@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import moment from "moment";
 import { useQuery, gql } from "@apollo/react-hooks";
 import {
   BarChart,
@@ -13,8 +14,12 @@ import {
 const GET_DATA = gql`
   query GetAnalysisData {
     getAnalysisData {
-      sentimentAnalysis
-      tickerAnalysis
+      topSentiment
+      topMention
+      totalComments
+      totalPosts
+      totalSubreddits
+      timestamp
     }
   }
 `;
@@ -22,51 +27,51 @@ const GET_DATA = gql`
 const DATA_SUBSCRIPTION = gql`
   subscription DataSubscription {
     onUpdateAnalysisData {
-      tickerAnalysis
-      sentimentAnalysis
+      topSentiment
+      topMention
+      totalComments
+      totalPosts
+      totalSubreddits
+      timestamp
     }
   }
 `;
 
 const App = () => {
-  const [sentimentData, setSentimentData] = useState({});
-  const [sentimentDataStructured, setSentimentDataStructured] = useState([]);
-  const [topData, setTopData] = useState({});
-  const [topDataStructured, setTopDataStructured] = useState([]);
+  const [analysisData, setAnalysisData] = useState({});
+  const [sentimentData, setSentimentDataStructured] = useState([]);
+  const [mentionData, setMentionDataStructured] = useState([]);
   const { loading, error, data: initialData, subscribeToMore } = useQuery(
     GET_DATA
   );
 
   useEffect(() => {
-    const temp = [];
-    for (const key of Object.keys(topData)) {
-      temp.push({
+    if (Object.keys(analysisData).length === 0) return;
+    const tempSentiment = [];
+    const tempMention = [];
+    const topSentiment = JSON.parse(analysisData.topSentiment);
+    const topMention = JSON.parse(analysisData.topMention);
+    for (const key of Object.keys(topSentiment)) {
+      tempSentiment.push({
         name: key,
-        mentions: topData[key],
+        negative: topSentiment[key].neg,
+        neutral: topSentiment[key].neu,
+        positive: topSentiment[key].pos,
       });
     }
-    setTopDataStructured(temp);
-  }, [topData]);
-
-  useEffect(() => {
-    const temp = [];
-    for (const key of Object.keys(sentimentData)) {
-      temp.push({
+    setSentimentDataStructured(tempSentiment);
+    for (const key of Object.keys(topMention)) {
+      tempMention.push({
         name: key,
-        negative: sentimentData[key].neg,
-        neutral: sentimentData[key].neu,
-        positive: sentimentData[key].pos,
+        mentions: topMention[key],
       });
     }
-    setSentimentDataStructured(temp);
-  }, [sentimentData]);
+    setMentionDataStructured(tempMention);
+  }, [analysisData]);
 
   useEffect(() => {
-    if ((!sentimentData.length || !topData.length) && initialData) {
-      setSentimentData(
-        JSON.parse(initialData.getAnalysisData.sentimentAnalysis)
-      );
-      setTopData(JSON.parse(initialData.getAnalysisData.tickerAnalysis));
+    if (initialData && !analysisData.length) {
+      setAnalysisData(initialData.getAnalysisData);
     }
     dataSubscription(subscribeToMore);
   }, [initialData]);
@@ -76,17 +81,16 @@ const App = () => {
       document: DATA_SUBSCRIPTION,
       updateQuery: (prev, { subscriptionData }) => {
         if (!subscriptionData.data) return prev;
-        setSentimentData(
-          JSON.parse(
-            subscriptionData.data.onUpdateAnalysisData.sentimentAnalysis
-          )
-        );
-        setTopData(
-          JSON.parse(subscriptionData.data.onUpdateAnalysisData.tickerAnalysis)
-        );
+        setAnalysisData(subscriptionData.data);
       },
       onError: (error) => {
-        if (error.errorMessage.includes("Socket")) {
+        console.log(error);
+        if (
+          error.errors &&
+          error.errors[0] &&
+          error.errors[0].message === "Connection closed"
+        ) {
+          console.log("retrying");
           setTimeout(() => {
             this.dataSubscription(subscribeToMore, retrying * 2);
           }, retrying);
@@ -111,8 +115,20 @@ const App = () => {
     return null;
   };
 
-  if (loading) return <p>Loading...</p>;
-  if (error) return <p>Error!</p>;
+  if (loading)
+    return (
+      <div className="app-message">
+        <h1>Loading...</h1>
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="app-message">
+        <h1>Error!</h1>
+      </div>
+    );
+
   return (
     <div className="app">
       <header>
@@ -120,15 +136,16 @@ const App = () => {
       </header>
       <div className="info-container">
         <h3 className="chart-title">Summary</h3>
-        <p>Analyzed 19919 comment threads in 147 posts in 3 subreddits</p>
-        <p>Last updated: 5 minutes ago</p>
+
+        <p>{`Analyzed ${analysisData.totalComments} comments in ${analysisData.totalPosts} posts in ${analysisData.totalSubreddits} subreddits.`}</p>
+        <p>{`Updated ${moment.utc(analysisData.timestamp).fromNow()}`}</p>
       </div>
       <main className="main-container">
         <div className="chart-container">
           <h3 className="chart-title">Top mentioned tickers</h3>
           <div className="chart">
             <ResponsiveContainer className="responsive-container">
-              <BarChart data={topDataStructured || {}} className="bar-chart">
+              <BarChart data={mentionData || []} className="bar-chart">
                 <XAxis dataKey="name" stroke="#fff" opacity={0.85} />
                 <YAxis dataKey="mentions" stroke="#fff" opacity={0.85} />
                 <Tooltip content={(e) => customTooltip(e)} />
@@ -141,7 +158,7 @@ const App = () => {
           <h3 className="chart-title">Top tickers seniment</h3>
           <div className="chart">
             <ResponsiveContainer className="responsive-container">
-              <BarChart data={sentimentDataStructured || {}}>
+              <BarChart data={sentimentData || []}>
                 <XAxis dataKey="name" stroke="#fff" opacity={0.85} />
                 <YAxis stroke="#fff" opacity={0.85} />
                 <Tooltip content={(e) => customTooltip(e)} />

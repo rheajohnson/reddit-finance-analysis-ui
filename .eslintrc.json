@@ -24,7 +24,6 @@
   },
   "plugins": ["react", "import", "jsx-a11y", "prettier"],
   "rules": {
-    "no-console": 1,
     "prettier/prettier": "error",
     "react/prop-types": 0
   },

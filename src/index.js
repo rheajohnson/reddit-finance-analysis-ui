@@ -9,13 +9,13 @@ import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import "normalize.css";
 import "./index.css";
 
-const url =
-  "https://xqbqahnovzf2db6tj5fzabnz4u.appsync-api.us-west-2.amazonaws.com/graphql";
-const region = "us-west-2";
+const url = process.env.REACT_APP_API_URL;
+const region = process.env.REACT_APP_REGION;
 const auth = {
   type: "API_KEY",
-  apiKey: "da2-hl3ydon5j5g4rhvnuq2rom3swe",
+  apiKey: process.env.REACT_APP_AUTH_KEY,
 };
+
 const link = ApolloLink.from([
   createAuthLink({ url, region, auth }),
   createSubscriptionHandshakeLink({ url, region, auth }),
