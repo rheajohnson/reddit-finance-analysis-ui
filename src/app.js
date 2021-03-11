@@ -141,7 +141,7 @@ const App = () => {
       <main className="main-container">
         <div className="chart-container">
           <h3 className="chart-title">Most Mentioned Tickers</h3>
-          <div className="chart">
+          <div className="chart mention-chart">
             <ResponsiveContainer
               className="responsive-container"
               minWidth={400}
@@ -150,7 +150,6 @@ const App = () => {
                 data={mentionData || []}
                 className="bar-chart"
                 margin={{
-                  left: 10,
                   right: 30,
                 }}
               >
@@ -164,7 +163,7 @@ const App = () => {
         </div>
         <div className="chart-container">
           <h3 className="chart-title">Ticker Sentiment</h3>
-          <div className="chart">
+          <div className="chart sentiment-chart">
             <ResponsiveContainer
               className="responsive-container"
               minWidth={500}

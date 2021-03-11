@@ -83,7 +83,7 @@ footer a {
 .chart-container {
   width: calc(50% - 2.5rem);
   min-width: 320px;
-  height: 300px;
+  height: 360px;
   background-color: #393948;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -97,14 +97,22 @@ footer a {
 
 .chart {
   width: 100%;
-  height: 200px;
+  max-width: 640px;
   padding-bottom: 32px;
   overflow-x: auto;
   overflow-y: visible;
 }
 
+.sentiment-chart {
+  height: 65%;
+}
+
+.mention-chart {
+  height: 70%;
+}
+
 .chart-container .chart-title {
-  margin-bottom: 2rem;
+  margin-bottom: 2.5rem;
 }
 
 .custom-tooltip {
@@ -120,5 +128,12 @@ footer a {
   }
   .chart-container {
     width: 100%;
+  }
+  .sentiment-chart {
+    height: 70%;
+  }
+
+  .mention-chart {
+    height: 77%;
   }
 }
