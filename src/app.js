@@ -76,7 +76,7 @@ const App = () => {
     dataSubscription(subscribeToMore);
   }, [initialData]);
 
-  const dataSubscription = (subscribeToMore, retrying = 50) => {
+  const dataSubscription = (subscribeToMore) => {
     subscribeToMore({
       document: DATA_SUBSCRIPTION,
       updateQuery: (prev, { subscriptionData }) => {
@@ -86,8 +86,8 @@ const App = () => {
       onError: ({ errors }) => {
         if (errors && errors[0].message === "Connection closed") {
           setTimeout(() => {
-            dataSubscription(subscribeToMore, retrying * 2);
-          }, retrying);
+            dataSubscription(subscribeToMore);
+          }, 5000);
         }
       },
     });
@@ -127,27 +127,30 @@ const App = () => {
     <div className="app">
       <header>
         <h2>Reddit Finance Scraper</h2>
-      </header>
-      <div className="info-container">
-        <h3 className="chart-title">Summary</h3>
-
-        <p>{`Analyzed ${analysisData.totalComments} comment threads in ${analysisData.totalPosts} posts in ${analysisData.totalSubreddits} subreddits.`}</p>
         <p>
-          Last updated:{" "}
+          Updated{" "}
           <Moment interval={1000} fromNow utc>
             {analysisData.timestamp}
           </Moment>
         </p>
+      </header>
+      <div className="info-container">
+        <h3 className="chart-title">Summary</h3>
+        <p>{`Analyzed ${analysisData.totalComments} comments in ${analysisData.totalPosts} posts in ${analysisData.totalSubreddits} subreddits.`}</p>
       </div>
       <main className="main-container">
         <div className="chart-container">
           <h3 className="chart-title">Most Mentioned Tickers</h3>
           <div className="chart">
-            <ResponsiveContainer className="responsive-container">
+            <ResponsiveContainer
+              className="responsive-container"
+              minWidth={400}
+            >
               <BarChart
                 data={mentionData || []}
                 className="bar-chart"
                 margin={{
+                  left: 10,
                   right: 30,
                 }}
               >
@@ -162,7 +165,10 @@ const App = () => {
         <div className="chart-container">
           <h3 className="chart-title">Ticker Sentiment</h3>
           <div className="chart">
-            <ResponsiveContainer className="responsive-container">
+            <ResponsiveContainer
+              className="responsive-container"
+              minWidth={500}
+            >
               <BarChart
                 data={sentimentData || []}
                 margin={{

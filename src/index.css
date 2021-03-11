@@ -27,6 +27,7 @@ header {
   padding: 0 1rem;
   background-color: #393948;
   border-radius: 8px;
+  min-width: 320px;
 }
 
 footer {
@@ -39,21 +40,26 @@ footer {
   border-radius: 8px;
   height: 48px;
   margin: auto 1rem 1rem;
+  min-width: 320px;
+  padding: 0 1rem;
 }
 
 .info-container {
-  font-size: 14px;
   color: white;
   display: flex;
   flex-direction: column;
-  padding: 1rem;
+  padding: 0 1rem;
   background-color: #393948;
   margin: 0 1rem 1rem;
   border-radius: 8px;
+  min-width: 320px;
 }
 
-.info-container p {
-  margin: 8px 0;
+.info-container p,
+header p {
+  font-size: 14px;
+  line-height: 18px;
+  margin-top: 0;
 }
 
 footer p {
@@ -76,10 +82,9 @@ footer a {
 
 .chart-container {
   width: calc(50% - 2.5rem);
-  min-width: 240px;
-  height: 400px;
+  min-width: 320px;
+  height: 300px;
   background-color: #393948;
-  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   padding: 1rem;
   margin-bottom: 1rem;
   border-radius: 8px;
@@ -92,7 +97,10 @@ footer a {
 
 .chart {
   width: 100%;
-  height: 300px;
+  height: 200px;
+  padding-bottom: 32px;
+  overflow-x: auto;
+  overflow-y: visible;
 }
 
 .chart-container .chart-title {
@@ -106,7 +114,7 @@ footer a {
   color: #1b1d30;
 }
 
-@media only screen and (max-width: 900px) {
+@media only screen and (max-width: 966px) {
   html {
     font-size: 12px;
   }

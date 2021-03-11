@@ -1,7 +1,9 @@
-bucket: &bucket "www.ryanjohnsondev.com"
+bucket: &bucket "www.financescraper.ryanjohnsondev.com"
+secret: &secret "reddit-finance-analysis-ui-env-vars"
 node_image: &node_image "circleci/node:12.16.0-stretch"
 resource_class: &resource_class "small"
 working_directory: &working_directory "/tmp/working-directory"
+context: &context "context-aws-311638723712"
 
 version: 2.1
 
@@ -53,8 +55,8 @@ jobs:
     description: A parameterized job that gets env vars from AWS Secrets Manager
     executor: aws-cli/default
     parameters:
-      environment-name:
-        description: "Name of the environment that becomes part of the secret-id"
+      secret-name:
+        description: "Name of the relevant secret in Secrets Manager"
         default: ""
         type: string
     resource_class: *resource_class
@@ -65,7 +67,7 @@ jobs:
           name: Get secret value from AWS Secrets Manager
           command: |
             echo 'export SECRETS=$(aws secretsmanager get-secret-value \
-            --secret-id="arn:aws:secretsmanager:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:secret:${CIRCLE_PROJECT_REPONAME}-env-vars-<< parameters.environment-name >>" \
+            --secret-id="arn:aws:secretsmanager:${AWS_DEFAULT_REGION}:${AWS_ACCOUNT_ID}:secret:<< parameters.secret-name >>" \
             --query="SecretString" \
             --output="text")' >> $BASH_ENV
       - run:
@@ -132,22 +134,22 @@ workflows:
               only:
                 - master
 
-      # - eslint:
-      #     filters:
-      #       branches:
-      #         only:
-      #           - master
-      #     requires:
-      #       - npm-ci
+      - eslint:
+          filters:
+            branches:
+              only:
+                - master
+          requires:
+            - npm-ci
 
       - get-secrets:
-          context: "context-aws-311638723712"
+          context: *context
           filters:
             branches:
               only:
                 - master
           name: GetSecrets
-          environment-name: "prod"
+          secret-name: *secret
           requires:
             - npm-ci
 
@@ -162,7 +164,7 @@ workflows:
             - GetSecrets
 
       - sync-files-to-s3:
-          context: "context-aws-311638723712"
+          context: *context
           filters:
             branches:
               only:
