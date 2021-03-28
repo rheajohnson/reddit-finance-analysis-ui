@@ -1,3 +1,8 @@
+* {
+  margin: 0;
+  padding: 0;
+}
+
 html {
   font-family: "Roboto", sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -7,6 +12,14 @@ html {
   overflow-x: hidden;
 }
 
+h2,
+h3 {
+  margin-bottom: 1rem;
+}
+
+/*
+layout
+*/
 .app {
   width: 100%;
   min-height: 100vh;
@@ -14,52 +27,99 @@ html {
   flex-direction: column;
 }
 
-.app-message {
-  width: 100%;
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 header {
   margin: 1rem;
-  padding: 0 1rem;
-  background-color: #393948;
-  border-radius: 8px;
-  min-width: 320px;
 }
 
+header,
+footer,
+.summary-container,
+.chart-container {
+  min-width: 320px;
+  border-radius: 8px;
+  background-color: #393948;
+}
+
+header,
+.summary-container,
+.chart-container {
+  padding: 1rem;
+}
+
+.charts-wrapper {
+  height: 100%;
+  margin: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+/*
+summary
+*/
+.summary-container {
+  display: flex;
+  flex-direction: column;
+  margin: 0 1rem 1rem;
+}
+
+.summary-container p,
+header p {
+  font-size: 14px;
+}
+
+/*
+chart
+*/
+.chart-container {
+  width: calc(50% - 2.5rem);
+  height: 330px;
+  margin-bottom: 1rem;
+}
+
+.chart-container h3 {
+  height: 32px;
+}
+
+.responsive-container {
+  width: 100%;
+  height: 100%;
+}
+
+.chart {
+  width: 100%;
+  max-width: 640px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.sentiment-chart {
+  height: calc(276px - 2rem);
+  padding-bottom: 32px;
+}
+
+.mention-chart {
+  height: calc(308px - 2rem);
+}
+
+.custom-tooltip {
+  background-color: white;
+  font-weight: 600;
+  padding: 4px 12px;
+  color: #1b1d30;
+}
+
+/*
+footer
+*/
 footer {
   font-size: 14px;
-  color: white;
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: #393948;
-  border-radius: 8px;
   height: 48px;
   margin: auto 1rem 1rem;
-  min-width: 320px;
-  padding: 0 1rem;
-}
-
-.info-container {
-  color: white;
-  display: flex;
-  flex-direction: column;
-  padding: 0 1rem;
-  background-color: #393948;
-  margin: 0 1rem 1rem;
-  border-radius: 8px;
-  min-width: 320px;
-}
-
-.info-container p,
-header p {
-  font-size: 14px;
-  line-height: 18px;
-  margin-top: 0;
 }
 
 footer p {
@@ -71,55 +131,15 @@ footer a {
   text-decoration: none;
 }
 
-.main-container {
-  height: 100%;
-  margin: 0 1rem;
+/*
+message
+*/
+.app-message {
+  width: 100%;
+  min-height: 100vh;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-}
-
-.chart-container {
-  width: calc(50% - 2.5rem);
-  min-width: 320px;
-  height: 360px;
-  background-color: #393948;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  border-radius: 8px;
-}
-
-.responsive-container {
-  width: 100%;
-  height: 100%;
-}
-
-.chart {
-  width: 100%;
-  max-width: 640px;
-  padding-bottom: 32px;
-  overflow-x: auto;
-  overflow-y: visible;
-}
-
-.sentiment-chart {
-  height: 65%;
-}
-
-.mention-chart {
-  height: 70%;
-}
-
-.chart-container .chart-title {
-  margin-bottom: 2.5rem;
-}
-
-.custom-tooltip {
-  background-color: white;
-  font-weight: 600;
-  padding: 4px 12px;
-  color: #1b1d30;
+  justify-content: center;
 }
 
 @media only screen and (max-width: 966px) {
@@ -128,12 +148,5 @@ footer a {
   }
   .chart-container {
     width: 100%;
-  }
-  .sentiment-chart {
-    height: 70%;
-  }
-
-  .mention-chart {
-    height: 77%;
   }
 }

@@ -1,15 +1,10 @@
 import React, { useEffect, useState } from "react";
-import Moment from "react-moment";
+import Header from "components/header";
+import Summary from "components/summary";
+import Footer from "components/footer";
+import Chart from "components/chart";
 import { useQuery, gql } from "@apollo/react-hooks";
-import {
-  BarChart,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Bar,
-  ResponsiveContainer,
-  Legend,
-} from "recharts";
+import { BarChart, XAxis, YAxis, Tooltip, Bar, Legend } from "recharts";
 
 const GET_DATA = gql`
   query GetAnalysisData {
@@ -105,7 +100,6 @@ const App = () => {
         </div>
       );
     }
-
     return null;
   };
 
@@ -125,80 +119,45 @@ const App = () => {
 
   return (
     <div className="app">
-      <header>
-        <h2>Reddit Finance Scraper</h2>
-        <p>
-          Updated{" "}
-          <Moment interval={1000} fromNow utc>
-            {analysisData.timestamp}
-          </Moment>
-        </p>
-      </header>
-      <div className="info-container">
-        <h3 className="chart-title">Summary</h3>
-        <p>{`Analyzed ${analysisData.totalComments} comments in ${analysisData.totalPosts} posts in ${analysisData.totalSubreddits} subreddits.`}</p>
-      </div>
-      <main className="main-container">
-        <div className="chart-container">
-          <h3 className="chart-title">Most Mentioned Tickers</h3>
-          <div className="chart mention-chart">
-            <ResponsiveContainer
-              className="responsive-container"
-              minWidth={400}
-            >
-              <BarChart
-                data={mentionData || []}
-                className="bar-chart"
-                margin={{
-                  right: 30,
-                }}
-              >
-                <XAxis dataKey="name" stroke="#fff" opacity={0.85} />
-                <YAxis dataKey="mentions" stroke="#fff" opacity={0.85} />
-                <Tooltip content={(e) => customTooltip(e)} />
-                <Bar dataKey="mentions" fill="#FFC760" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-        <div className="chart-container">
-          <h3 className="chart-title">Ticker Sentiment</h3>
-          <div className="chart sentiment-chart">
-            <ResponsiveContainer
-              className="responsive-container"
-              minWidth={500}
-            >
-              <BarChart
-                data={sentimentData || []}
-                margin={{
-                  right: 30,
-                }}
-              >
-                <XAxis dataKey="name" stroke="#fff" opacity={0.85} />
-                <YAxis stroke="#fff" opacity={0.85} />
-                <Tooltip content={(e) => customTooltip(e)} />
-                <Bar dataKey="positive" fill="#FFC760" />
-                <Bar dataKey="neutral" fill="#4B7AF2" />
-                <Bar dataKey="negative" fill="#FB497C" />
-                <Legend
-                  wrapperStyle={{ position: "relative", marginLeft: 30 }}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </main>
-      <footer>
-        <span>
-          <a
-            href="http://www.ryanjohnsondev.com"
-            rel="noopener noreferrer"
-            target="_blank"
+      <Header timestamp={analysisData.timestamp} />
+      <Summary
+        totalComments={analysisData.totalComments}
+        totalPosts={analysisData.totalPosts}
+        totalSubreddits={analysisData.totalSubreddits}
+      />
+      <section className="charts-wrapper">
+        <Chart title="Most Mentioned Tickers">
+          <BarChart
+            data={mentionData || []}
+            className="bar-chart"
+            margin={{
+              right: 30,
+            }}
           >
-            © 2021 Ryan Seymore
-          </a>
-        </span>
-      </footer>
+            <XAxis dataKey="name" stroke="#fff" opacity={0.85} />
+            <YAxis dataKey="mentions" stroke="#fff" opacity={0.85} />
+            <Tooltip content={(e) => customTooltip(e)} />
+            <Bar dataKey="mentions" fill="#FFC760" />
+          </BarChart>
+        </Chart>
+        <Chart title="Ticker Sentiment">
+          <BarChart
+            data={sentimentData || []}
+            margin={{
+              right: 30,
+            }}
+          >
+            <XAxis dataKey="name" stroke="#fff" opacity={0.85} />
+            <YAxis stroke="#fff" opacity={0.85} />
+            <Tooltip content={(e) => customTooltip(e)} />
+            <Bar dataKey="positive" fill="#FFC760" />
+            <Bar dataKey="neutral" fill="#4B7AF2" />
+            <Bar dataKey="negative" fill="#FB497C" />
+            <Legend wrapperStyle={{ position: "relative", marginLeft: 30 }} />
+          </BarChart>
+        </Chart>
+      </section>
+      <Footer />
     </div>
   );
 };

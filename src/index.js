@@ -1,13 +1,13 @@
 import React from "react";
 import { render } from "react-dom";
-import App from "./app";
+import App from "app";
 import { ApolloProvider, InMemoryCache } from "@apollo/react-hooks";
 import { ApolloLink } from "apollo-link";
 import { createAuthLink } from "aws-appsync-auth-link";
 import ApolloClient from "apollo-client";
 import { createSubscriptionHandshakeLink } from "aws-appsync-subscription-link";
 import "normalize.css";
-import "./index.css";
+import "index.css";
 
 const url = process.env.REACT_APP_API_URL;
 const region = process.env.REACT_APP_REGION;
